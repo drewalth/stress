@@ -1,3 +1,8 @@
+// Description: A tool for stress testing commands
+// Author: Drew Althage
+// Created: 2024-27-02
+// Usage: go run stress.go --cmd "echo hello" --runs 100 --parallel 10
+// License: MIT
 package main
 
 import (
