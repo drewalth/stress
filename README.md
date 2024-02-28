@@ -30,3 +30,14 @@ sudo make install_stress_mac
 ```bash
 stress --cmd "npm test --workspaces" --runs 100 --parallel 10
 ```
+
+### CI
+
+#### Github Actions
+
+> If you just want to copy the go file. Go is installed on most if not all GHA runners.
+
+```yaml
+name: Stress Test
+run: go run ./stress.go --cmd "npm test --workspaces" --runs 100 --parallel 10
+```
