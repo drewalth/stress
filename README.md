@@ -13,7 +13,7 @@ COMMANDS:
 GLOBAL OPTIONS:
    --cmd value                 Command to run for stress testing
    --runs value, -r value      Number of times to run the command (default: 100)
-   --parallel value, -p value  Number of parallel executions (default: <number of CPUs>)
+   --parallel value, -p value  Number of parallel executions (default: 4)
    --help, -h                  show help
 ```
 

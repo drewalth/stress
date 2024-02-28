@@ -10,12 +10,18 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/schollz/progressbar/v3"
 	"github.com/urfave/cli/v2"
 )
 
 func main() {
 
-	cpuCount := runtime.NumCPU()
+	// A quarter of the available CPUs with a minimum of 1
+	defaultParallelLimit := runtime.NumCPU() / 4
+
+	if defaultParallelLimit < 1 {
+		defaultParallelLimit = 1
+	}
 
 	app := &cli.App{
 		Name:  "stress",
@@ -35,21 +41,15 @@ func main() {
 			&cli.IntFlag{
 				Name:    "parallel",
 				Usage:   "Number of parallel executions",
-				Value:   cpuCount,
+				Value:   defaultParallelLimit,
 				Aliases: []string{"p"},
 			},
 		},
 		Action: func(c *cli.Context) error {
-
 			log.Println("Running stress test with the following parameters:")
 			log.Printf("Command: %s", c.String("cmd"))
 			log.Printf("Runs: %d", c.Int("runs"))
 			log.Printf("Parallel: %d", c.Int("parallel"))
-			log.Printf("CPU count: %d", cpuCount)
-
-			if cpuCount < c.Int("parallel") {
-				log.Printf("Warning: The number of parallel executions is greater than the number of CPUs. This may cause performance issues.")
-			}
 
 			return runStressTest(c.String("cmd"), c.Int("runs"), c.Int("parallel"))
 		},
@@ -62,6 +62,9 @@ func main() {
 }
 
 func runStressTest(cmdString string, runs int, parallelLimit int) error {
+
+	bar := progressbar.Default(int64(runs))
+
 	statusChan := make(chan error, runs)
 	var wg sync.WaitGroup
 	semaphore := make(chan struct{}, parallelLimit)
@@ -70,10 +73,8 @@ func runStressTest(cmdString string, runs int, parallelLimit int) error {
 		wg.Add(1)
 		go func(runNumber int) {
 			defer wg.Done()
-			semaphore <- struct{}{}        // Acquire semaphore
-			defer func() { <-semaphore }() // Release semaphore
-
-			// Split the command string into command and arguments.
+			semaphore <- struct{}{}
+			defer func() { <-semaphore }()
 			cmdParts := strings.Fields(cmdString)
 			var stdout, stderr bytes.Buffer
 			cmd := exec.Command(cmdParts[0], cmdParts[1:]...)
@@ -86,7 +87,7 @@ func runStressTest(cmdString string, runs int, parallelLimit int) error {
 				log.Println(errorMessage)
 				statusChan <- fmt.Errorf(errorMessage)
 			} else {
-				log.Printf("Run %d succeeded\n", runNumber)
+				bar.Add(1)
 				statusChan <- nil
 			}
 		}(i)
