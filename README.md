@@ -1,5 +1,7 @@
 # stress
 
+[![Build](https://github.com/drewalth/stress/actions/workflows/go.yml/badge.svg)](https://github.com/drewalth/stress/actions/workflows/go.yml)
+
 ```bash
 NAME:
    stress - A tool for stress testing commands
